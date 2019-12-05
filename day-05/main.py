@@ -12,19 +12,28 @@ class Computer:
     def run(self):
         while not self.stopped:
             instruction, parameters = self.decode()
+            
+            instruction_pointer_before = self.instruction_pointer
+            
             instruction(*parameters)
-            self.instruction_pointer += 1 + len(parameters)
+            
+            if instruction_pointer_before == self.instruction_pointer:
+                # no jump happened, so we move the instruction pointer
+                # to the next instruction (jump over this opcode and parameters)
+                self.instruction_pointer += 1 + len(parameters)
         
         return self.outputs
 
     def decode(self):
-        command = self.program[self.instruction_pointer]
-        opcode = command % 100
         opcodemap = {
             1: self.add,
             2: self.multiply,
             3: self.input,
             4: self.output,
+            5: self.jump_if_true,
+            6: self.jump_if_false,
+            7: self.less_than,
+            8: self.equals,
             99: self.halt
         }
         input_argument_count_map = {
@@ -38,7 +47,11 @@ class Computer:
             8: 2,
             99: 0
         }
-        opcodes_with_output = [1, 2, 3]
+        opcodes_with_output = [1, 2, 3, 7, 8]
+        
+        command = self.program[self.instruction_pointer]
+        opcode = command % 100
+
         parameters = []
         
         input_argument_count = input_argument_count_map[opcode]
@@ -61,7 +74,7 @@ class Computer:
             # add result address to parameters
             result_addr = self.program[self.instruction_pointer + input_argument_count + 1]
             parameters.append(result_addr)
-        
+
         return opcodemap[opcode], parameters
 
     def halt(self):
@@ -79,6 +92,28 @@ class Computer:
     def output(self, something):
         self.outputs.append(something)
 
+    def jump_if_true(self, param, jump_address):
+        if param != 0:
+            self.instruction_pointer = jump_address
+
+    def jump_if_false(self, param, jump_address):
+        if param == 0:
+            self.instruction_pointer = jump_address
+
+    def less_than(self, lhs, rhs, result_addr):
+        if lhs < rhs:
+            self.program[result_addr] = 1
+        else:
+            self.program[result_addr] = 0
+
+    def equals(self, lhs, rhs, result_addr):
+        if lhs == rhs:
+            self.program[result_addr] = 1
+        else:
+            self.program[result_addr] = 0
+
+
+
 
 def part_one():
     with open("./input.txt") as f:
@@ -89,5 +124,15 @@ def part_one():
     print(c.run())
 
 
+def part_two():
+    with open("./input.txt") as f:
+        line = f.readline().strip()
+    program = list(map(int, line.split(",")))
+    inputs = [5]
+    c = Computer(program, inputs)
+    print(c.run())
+
+
 if __name__ == "__main__":
-    part_one()
+    # part_one()
+    part_two()

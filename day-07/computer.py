@@ -11,18 +11,33 @@ class Computer:
         self.instruction_pointer = 0
         self._state = States.CREATED
 
+    def __repr__(self):
+        return f"({self._state} IP={self.instruction_pointer} COMMAND={self.program[self.instruction_pointer]})"
+
     def run(self):
+        if self._state == States.HALTED:
+            return
+
+        self._state = States.RUNNING
+
         while self._state != States.HALTED:
+            # print(self.program[28])
             instruction, parameters = self.decode()
 
             instruction_pointer_before = self.instruction_pointer
 
             instruction(*parameters)
 
+            if self._state == States.WAITING_FOR_INPUT:
+                break
+
             if instruction_pointer_before == self.instruction_pointer:
                 # no jump happened, so we move the instruction pointer
                 # to the next instruction (jump over this opcode and parameters)
                 self.instruction_pointer += 1 + len(parameters)
+
+    def state(self):
+        return self._state
 
     def decode(self):
         opcodemap = {
@@ -89,6 +104,9 @@ class Computer:
         self.program[result_addr] = lhs * rhs
 
     def read_input(self, result_addr):
+        if not self._input_reader.has_next():
+            self._state = States.WAITING_FOR_INPUT
+            return
         self.program[result_addr] = self._input_reader.read_next()
 
     def write_output(self, something):
@@ -118,6 +136,8 @@ class Computer:
 class States(Enum):
     CREATED = 1
     HALTED = 2
+    WAITING_FOR_INPUT = 3
+    RUNNING = 4
 
 
 class InputReader:
@@ -137,3 +157,12 @@ class OutputWriter:
 
     def write(self, item):
         self._buffer.append(item)
+
+
+class MultiOutputWriter:
+    def __init__(self, buffers: list):
+        self._buffers = buffers
+
+    def write(self, item):
+        for buffer in self._buffers:
+            buffer.append(item)

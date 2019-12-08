@@ -21,7 +21,6 @@ class Computer:
         self._state = States.RUNNING
 
         while self._state != States.HALTED:
-            # print(self.program[28])
             instruction, parameters = self.decode()
 
             instruction_pointer_before = self.instruction_pointer

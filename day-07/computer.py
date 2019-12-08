@@ -27,8 +27,8 @@ class Computer:
         opcodemap = {
             1: self.add,
             2: self.multiply,
-            3: self.input,
-            4: self.output,
+            3: self.read_input,
+            4: self.write_output,
             5: self.jump_if_true,
             6: self.jump_if_false,
             7: self.less_than,
@@ -85,10 +85,10 @@ class Computer:
     def multiply(self, lhs, rhs, result_addr):
         self.program[result_addr] = lhs * rhs
 
-    def input(self, result_addr):
+    def read_input(self, result_addr):
         self.program[result_addr] = self.inputs.pop(0)
 
-    def output(self, something):
+    def write_output(self, something):
         self.outputs.append(something)
 
     def jump_if_true(self, param, jump_address):

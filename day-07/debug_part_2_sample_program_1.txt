@@ -10,3 +10,15 @@
 26: 0
 27: 0
 28: 5
+
+Interpretation:
+Address 28 is a decreasing counter. If it's != 0, the program loops back
+to address 6, otherwise halts. So this program should stop after 
+5 iterations.
+
+For me it runs in an endless loop. Printing out the value on address 28,
+I saw it was below 0, so decrementing it will never yield 0.
+
+Explanation: all amplifiers shared the SAME code in memory, so
+on the second run this counter started from -1. 
+Solution: pass in a copy of the program to every amplifier

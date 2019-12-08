@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from enum import Enum
+
 
 class Computer:
     def __init__(self, program, input_reader: InputReader, output_writer: OutputWriter):
@@ -7,10 +9,10 @@ class Computer:
         self._input_reader = input_reader
         self._output_writer = output_writer
         self.instruction_pointer = 0
-        self.stopped = False
+        self._state = States.CREATED
 
     def run(self):
-        while not self.stopped:
+        while self._state != States.HALTED:
             instruction, parameters = self.decode()
 
             instruction_pointer_before = self.instruction_pointer
@@ -78,7 +80,7 @@ class Computer:
         return opcodemap[opcode], parameters
 
     def halt(self):
-        self.stopped = True
+        self._state = States.HALTED
 
     def add(self, lhs, rhs, result_addr):
         self.program[result_addr] = lhs + rhs
@@ -111,6 +113,11 @@ class Computer:
             self.program[result_addr] = 1
         else:
             self.program[result_addr] = 0
+
+
+class States(Enum):
+    CREATED = 1
+    HALTED = 2
 
 
 class InputReader:

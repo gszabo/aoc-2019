@@ -1,27 +1,26 @@
-# Copied the computer implementation from day 5
-class Computer:
+from __future__ import annotations
 
-    def __init__(self, program, inputs):
+
+class Computer:
+    def __init__(self, program, input_reader: InputReader, output_writer: OutputWriter):
         self.program = program
-        self.inputs = inputs
+        self._input_reader = input_reader
+        self._output_writer = output_writer
         self.instruction_pointer = 0
-        self.outputs = []
         self.stopped = False
 
     def run(self):
         while not self.stopped:
             instruction, parameters = self.decode()
-            
+
             instruction_pointer_before = self.instruction_pointer
-            
+
             instruction(*parameters)
-            
+
             if instruction_pointer_before == self.instruction_pointer:
                 # no jump happened, so we move the instruction pointer
                 # to the next instruction (jump over this opcode and parameters)
                 self.instruction_pointer += 1 + len(parameters)
-        
-        return self.outputs
 
     def decode(self):
         opcodemap = {
@@ -33,7 +32,7 @@ class Computer:
             6: self.jump_if_false,
             7: self.less_than,
             8: self.equals,
-            99: self.halt
+            99: self.halt,
         }
         input_argument_count_map = {
             1: 2,
@@ -44,15 +43,15 @@ class Computer:
             6: 2,
             7: 2,
             8: 2,
-            99: 0
+            99: 0,
         }
         opcodes_with_output = [1, 2, 3, 7, 8]
-        
+
         command = self.program[self.instruction_pointer]
         opcode = command % 100
 
         parameters = []
-        
+
         input_argument_count = input_argument_count_map[opcode]
         if input_argument_count > 0:
             modes = list(f"{command//100:0{input_argument_count}}")
@@ -71,7 +70,9 @@ class Computer:
 
         if opcode in opcodes_with_output:
             # add result address to parameters
-            result_addr = self.program[self.instruction_pointer + input_argument_count + 1]
+            result_addr = self.program[
+                self.instruction_pointer + input_argument_count + 1
+            ]
             parameters.append(result_addr)
 
         return opcodemap[opcode], parameters
@@ -86,10 +87,10 @@ class Computer:
         self.program[result_addr] = lhs * rhs
 
     def read_input(self, result_addr):
-        self.program[result_addr] = self.inputs.pop(0)
+        self.program[result_addr] = self._input_reader.read_next()
 
     def write_output(self, something):
-        self.outputs.append(something)
+        self._output_writer.write(something)
 
     def jump_if_true(self, param, jump_address):
         if param != 0:
@@ -110,3 +111,22 @@ class Computer:
             self.program[result_addr] = 1
         else:
             self.program[result_addr] = 0
+
+
+class InputReader:
+    def __init__(self, buffer: list):
+        self._buffer = buffer
+
+    def has_next(self):
+        return len(self._buffer) > 0
+
+    def read_next(self):
+        return self._buffer.pop(0)
+
+
+class OutputWriter:
+    def __init__(self, buffer: list):
+        self._buffer = buffer
+
+    def write(self, item):
+        self._buffer.append(item)

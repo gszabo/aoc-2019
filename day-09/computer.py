@@ -9,8 +9,8 @@ class Computer:
         self.program = [0] * (len(program) * 10)
         # copying program to the beginning
         # --> this implements the defensive copy of the program
-        self.program[:len(program)] = program
-        
+        self.program[: len(program)] = program
+
         self._input_reader = input_reader
         self._output_writer = output_writer
         self.instruction_pointer = 0

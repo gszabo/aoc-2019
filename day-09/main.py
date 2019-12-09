@@ -14,5 +14,20 @@ def part_one():
     print(output)
 
 
+def part_two():
+    with open("./input.txt") as f:
+        program = list(map(int, f.readline().strip().split(",")))
+
+    input = [2]
+    output = []
+
+    c = Computer(program, InputReader(input), OutputWriter(output))
+    c.run()
+
+    print(output)
+
+
 if __name__ == "__main__":
     part_one()
+    print()
+    part_two()

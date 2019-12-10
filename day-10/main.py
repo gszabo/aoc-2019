@@ -105,15 +105,15 @@ def distance_from(p0):
     return distance
 
 
-def collect_by_direction(asteroids, start_point):
+def collect_by_direction(asteroids, viewpoint):
     asteroids_by_direction = defaultdict(list)
 
     for asteroid in asteroids:
-        direction = asteroid - start_point
+        direction = asteroid - viewpoint
         asteroids_by_direction[direction].append(asteroid)
 
     for asteroids_in_direction in asteroids_by_direction.values():
-        asteroids_in_direction.sort(key=distance_from(start_point))
+        asteroids_in_direction.sort(key=distance_from(viewpoint))
 
     return asteroids_by_direction
 
@@ -146,12 +146,12 @@ def part_one():
 
 def part_two():
     # result from part one
-    start_point = Point(14, 17)
+    laser_station = Point(14, 17)
 
     asteroids = read_asteroids("./input.txt")
-    asteroids.remove(start_point)
+    asteroids.remove(laser_station)
 
-    asteroids_by_direction = collect_by_direction(asteroids, start_point)
+    asteroids_by_direction = collect_by_direction(asteroids, laser_station)
 
     vaporized = vaporize(asteroids_by_direction)
 

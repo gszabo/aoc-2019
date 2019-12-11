@@ -2,27 +2,71 @@ from collections import defaultdict
 
 from computer import Computer
 
+BLACK = 0
+WHITE = 1
 
-class SpaceCraftSideReaderWriter:
-    def __init__(self):
-        self._field = defaultdict(int)
+
+class PaintBoardReaderWriter:
+    def __init__(self, start_color):
+        self._board = defaultdict(int)
+
         self._robot_position = (0, 0)
-        self._field[self._robot_position] = 1
         self._robot_direction = (0, 1)
+
+        self._board[self._robot_position] = start_color
+
         self._waiting_for_paint_color = True
 
     def painted_panels(self):
-        return list(self._field.keys())
+        return list(self._board.keys())
+
+    def print_board(self):
+        x_min, x_max, y_min, y_max = self._board_range()
+
+        full_board = []
+        for _ in range(0, y_max - y_min + 1):
+            black_row = [BLACK] * (x_max - x_min + 1)
+            full_board.append(black_row)
+
+        for (x, y), color in self._board.items():
+            full_board[y - y_min][x - x_min] = color
+
+        for row in reversed(full_board):
+            # the top row has the largest y coordinate
+            # but it's printed first
+            # so we need to print in reversed order
+            print("".join(map(self._pixel_to_print_char, row)))
+
+    def _pixel_to_print_char(self, pixel):
+        if pixel == BLACK:
+            return " "
+        else:
+            return "\u2593"
+
+    def _board_range(self):
+        get_x = lambda pair: pair[0]
+        get_y = lambda pair: pair[1]
+
+        x_min = min(map(get_x, self._board.keys()))
+        x_max = max(map(get_x, self._board.keys()))
+
+        y_min = min(map(get_y, self._board.keys()))
+        y_max = max(map(get_y, self._board.keys()))
+
+        return x_min, x_max, y_min, y_max
 
     def has_next(self):
         return True
 
     def read_next(self):
-        return self._field[self._robot_position]
+        return self._board[self._robot_position]
 
     def write(self, value):
+        # this write callback of the computer implements
+        # painting, rotating and moving the robot
+
         if self._waiting_for_paint_color:
-            self._field[self._robot_position] = value
+            self._board[self._robot_position] = value
         else:
             self._turn(value)
             self._step()
@@ -51,40 +95,29 @@ def part_one():
     with open("./input.txt") as f:
         program = list(map(int, f.readline().strip().split(",")))
 
-    vmi = SpaceCraftSideReaderWriter()
+    paint_board = PaintBoardReaderWriter(BLACK)
 
-    c = Computer(program, vmi, vmi)
+    c = Computer(program, paint_board, paint_board)
     c.run()
 
-    answer = len(vmi.painted_panels())
+    answer = len(paint_board.painted_panels())
 
     print(answer)
-    
-    coords = vmi.painted_panels()
-    print("x", min(map(lambda pair: pair[0], coords)), max(map(lambda pair: pair[0], coords)))
-    print("y", min(map(lambda pair: pair[1], coords)), max(map(lambda pair: pair[1], coords)))
 
-    board = []
-    for i in range(0, 6):
-        board.append([0] * 43)
 
-    for k,v in vmi._field.items():
-        x, y = k
-        board[5+y][x] = v
+def part_two():
+    with open("./input.txt") as f:
+        program = list(map(int, f.readline().strip().split(",")))
 
-    for y in range(0, len(board)):
-        for x in range(0, len(board[y])):
-            pixel = board[y][x]
-            if pixel == 0:
-                print(" ", end="")
-            else:
-                print("\u2593", end="")
-        print()
-    
-    # result seems: FKEKCFRK
-    # but upside down
-    # TODO: make it face upwards
+    paint_board = PaintBoardReaderWriter(WHITE)
+
+    c = Computer(program, paint_board, paint_board)
+    c.run()
+
+    paint_board.print_board()
 
 
 if __name__ == "__main__":
     part_one()
+    print()
+    part_two()

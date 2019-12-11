@@ -7,6 +7,7 @@ class SpaceCraftSideReaderWriter:
     def __init__(self):
         self._field = defaultdict(int)
         self._robot_position = (0, 0)
+        self._field[self._robot_position] = 1
         self._robot_direction = (0, 1)
         self._waiting_for_paint_color = True
 
@@ -58,6 +59,31 @@ def part_one():
     answer = len(vmi.painted_panels())
 
     print(answer)
+    
+    coords = vmi.painted_panels()
+    print("x", min(map(lambda pair: pair[0], coords)), max(map(lambda pair: pair[0], coords)))
+    print("y", min(map(lambda pair: pair[1], coords)), max(map(lambda pair: pair[1], coords)))
+
+    board = []
+    for i in range(0, 6):
+        board.append([0] * 43)
+
+    for k,v in vmi._field.items():
+        x, y = k
+        board[5+y][x] = v
+
+    for y in range(0, len(board)):
+        for x in range(0, len(board[y])):
+            pixel = board[y][x]
+            if pixel == 0:
+                print(" ", end="")
+            else:
+                print("\u2593", end="")
+        print()
+    
+    # result seems: FKEKCFRK
+    # but upside down
+    # TODO: make it face upwards
 
 
 if __name__ == "__main__":

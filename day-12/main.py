@@ -151,10 +151,19 @@ def part_one():
 
 
 def part_two():
+    # Movement on the different axes are independent 
+    # from each other. So it's sufficient to find cycles
+    # among each axis, and their least common multiple
+    # is going to be the cycle of the whole system.
+
+    # NOTE: assuming the systems returns to its initial state
+    
     x_cycle = find_cycle_for_axis(create_input(), "x")
     y_cycle = find_cycle_for_axis(create_input(), "y")
     z_cycle = find_cycle_for_axis(create_input(), "z")
+    
     answer = lcm(x_cycle, lcm(y_cycle, z_cycle))
+    
     print(answer)
 
 

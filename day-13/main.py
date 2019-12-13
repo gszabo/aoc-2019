@@ -10,6 +10,8 @@ BLOCK = 2
 HORIZONTAL_PADDLE = 3
 BALL = 4
 
+CHARS = {EMPTY: " ", WALL: "#", BLOCK: "X", HORIZONTAL_PADDLE: "=", BALL: "o"}
+
 
 class Screen:
     def __init__(self):
@@ -20,6 +22,7 @@ class Screen:
 
     def number_of_tiles(self, tile_type):
         return len([tile for tile in self._grid.values() if tile == tile_type])
+
 
 class ScreenOutputWriter:
     def __init__(self, screen: Screen):
@@ -49,6 +52,23 @@ def part_one():
     answer = screen.number_of_tiles(BLOCK)
 
     print(answer)
+
+
+def part_two():
+    # screen is about 40x25
+    # maybe try the curses library
+    # https://docs.python.org/3/howto/curses.html#curses-howto
+
+    with open("./input.txt") as f:
+        program = list(map(int, f.readline().strip().split(",")))
+
+    screen = Screen()
+    # TODO: segment display for score
+    # TODO: joystick input
+    # TODO: maybe throttle computer running?
+
+    c = Computer(program, InputReader([]), ScreenOutputWriter(screen))
+    c.run()
 
 
 if __name__ == "__main__":

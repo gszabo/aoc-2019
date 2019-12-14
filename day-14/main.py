@@ -84,9 +84,8 @@ from pprint import pprint
 # print_graph()
 
 
-lab = defaultdict(int)
 
-def add_to_lab(chemical, amount):
+def add_to_lab(lab, chemical, amount):
     produce_info = reactions[chemical]
     
     multiplier = amount // produce_info["amount"]
@@ -98,18 +97,52 @@ def add_to_lab(chemical, amount):
     
     lab[chemical] += produce_info["amount"]*multiplier
 
-add_to_lab("FUEL", 1)
+def part_one():
+    lab = defaultdict(int)
+    add_to_lab(lab, "FUEL", 1)
 
-while True:
-    negative_keys = list(filter(lambda k: k != "ORE" and lab[k] < 0, lab.keys()))
-    if len(negative_keys) == 0:
-        break
-    chemical_to_add = negative_keys[0]
-    add_to_lab(chemical_to_add, abs(lab[chemical_to_add]))
+    while True:
+        negative_keys = list(filter(lambda k: k != "ORE" and lab[k] < 0, lab.keys()))
+        if len(negative_keys) == 0:
+            break
+        chemical_to_add = negative_keys[0]
+        add_to_lab(lab, chemical_to_add, abs(lab[chemical_to_add]))
 
-# add_to_lab("A", 1)
-# add_to_lab("C", 1)
-# add_to_lab("B", 1)
+    pprint(lab)
+    print(-lab["ORE"])
 
-pprint(lab)
-print(-lab["ORE"])
+
+def part_two():
+    lab = defaultdict(int)
+
+    ORE_AMOUNT = 1000000000000
+
+    ORE_PER_FUEL = 346961
+
+    lab["ORE"] = ORE_AMOUNT
+
+    while lab["ORE"] > ORE_PER_FUEL:
+        add_to_lab(lab, "FUEL", lab["ORE"] // ORE_PER_FUEL)
+        while True:
+            negative_keys = list(filter(lambda k: k != "ORE" and lab[k] < 0, lab.keys()))
+            if len(negative_keys) == 0:
+                break
+            chemical_to_add = negative_keys[0]
+            add_to_lab(lab, chemical_to_add, abs(lab[chemical_to_add]))
+
+    while lab["ORE"] >= 0:
+        add_to_lab(lab, "FUEL", 1)
+        while True:
+            negative_keys = list(filter(lambda k: k != "ORE" and lab[k] < 0, lab.keys()))
+            if len(negative_keys) == 0:
+                break
+            chemical_to_add = negative_keys[0]
+            add_to_lab(lab, chemical_to_add, abs(lab[chemical_to_add]))
+    
+    pprint(lab)
+    print(lab["FUEL"])
+    print(lab["FUEL"]-1)
+
+
+if __name__ == "__main__":
+    part_two()

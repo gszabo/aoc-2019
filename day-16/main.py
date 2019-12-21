@@ -36,6 +36,19 @@ def algo_phase(digits):
 
     return result
 
+def simple_algo_phase(digits):
+    result = []
+
+    s = sum(digits)
+
+    result.append(s % 10)
+    for i in range(0, len(digits) - 1):
+        digit = digits[i]
+        s -= digit
+        result.append(s % 10)
+
+    return result
+
 def text_to_digits(text):
     return [int(ch) for ch in text]
 
@@ -52,6 +65,19 @@ def part_one():
     answer = digits_to_text(digits)[:8]
     print(answer)
 
+def part_two():
+    with open("./input.txt") as f:
+        input = f.readline().strip()
+    offset = int(input[0:7])
+    digits = text_to_digits((input*10000)[offset:])
+    for _ in range(0, 100):
+        digits = simple_algo_phase(digits)
+    answer = digits_to_text(digits)[:8]
+    print(answer)
+
 
 if __name__ == "__main__":
     part_one()
+    print()
+    part_two()
+

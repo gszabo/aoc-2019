@@ -213,23 +213,24 @@ def play(stdscr):
 
 def neighbours(cell, corridors):
     x, y = cell
-    possibles = [
+    candidates = [
         (x + 1, y),
         (x - 1, y),
         (x, y + 1),
         (x, y - 1),
     ]
-    return [possible for possible in possibles if possible in corridors]
+    return [c for c in candidates if c in corridors]
 
 
 def part_one():
     with open("./output.dat", "rb") as f:
         data = pickle.load(f)
 
-    # doing a BFS on the manually collected data
     corridors = data["corridors"]
     oxygen = data["oxygen"]
 
+    # doing a BFS on the manually collected data
+    # to obtain the distances from the starting point
     start = (0, 0)
     distances = {start: 0}
     discovered = {start}
@@ -250,7 +251,40 @@ def part_one():
     print(answer)
 
 
+def part_two():
+    with open("./output.dat", "rb") as f:
+        data = pickle.load(f)
+
+    corridors = data["corridors"]
+    oxygen = data["oxygen"]
+
+    # doing a BFS on the manually collected data
+    # to obtain the distances from the oxygen tank
+    start = oxygen
+    distances = {start: 0}
+    discovered = {start}
+
+    to_visit = [start]
+
+    while len(to_visit) > 0:
+        cell = to_visit.pop(0)
+        cell_distance = distances[cell]
+        for neighbour in neighbours(cell, corridors):
+            if neighbour not in discovered:
+                to_visit.append(neighbour)
+                discovered.add(neighbour)
+                distances[neighbour] = cell_distance + 1
+
+    answer = max(distances.values())
+
+    print(answer)
+
+
 if __name__ == "__main__":
+    # this is to manually explore the whole maze
     # wrapper(play)
+
     part_one()
+    print()
+    part_two()
 

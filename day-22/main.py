@@ -17,8 +17,8 @@ def cut(card_count, n):
 
 class Polynom:
     def __init__(self, a0: int, a1: int, modulo: int):
-        self._a0 = a0
-        self._a1 = a1
+        self._a0 = a0 % modulo
+        self._a1 = a1 % modulo
         self._modulo = modulo
 
     def evaluate(self, x: int):
@@ -38,27 +38,50 @@ class Polynom:
             modulo=self._modulo,
         )
 
+    def inverse(self):
+        if self._a1 == 0:
+            raise Exception("cannot invert constant")
 
-def part_one():
-    DECK_SIZE = 10007
+        q = None
+        for i in range(1, self._a1 + 1):
+            if ((i * self._modulo) % self._a1) == (self._a1 - 1):
+                q = i
+                break
 
+        inverter = (q * self._modulo + 1) // self._a1
+
+        return Polynom(-inverter * self._a0, inverter, self._modulo)
+
+    def __repr__(self):
+        return f"({self._a1} * x + {self._a0}) mod {self._modulo}"
+
+
+def read_input(path, deck_size):
     lines = []
-    with open("./input.txt") as f:
+    with open(path) as f:
         lines = list(map(str.strip, f.readlines()))
 
     polynoms = []
 
     for line in lines:
         if line == "deal into new stack":
-            polynoms.append(deal_into_new_stack(DECK_SIZE))
+            polynoms.append(deal_into_new_stack(deck_size))
         elif line.startswith("deal with increment"):
             increment = int(line[len("deal with increment ") :])
-            polynoms.append(deal_with_increment(DECK_SIZE, increment))
+            polynoms.append(deal_with_increment(deck_size, increment))
         elif line.startswith("cut"):
             n = int(line[len("cut ") :])
-            polynoms.append(cut(DECK_SIZE, n))
+            polynoms.append(cut(deck_size, n))
         else:
             raise Exception("unknown line: " + line)
+
+    return polynoms
+
+
+def part_one():
+    DECK_SIZE = 10007
+
+    polynoms = read_input("./input.txt", DECK_SIZE)
 
     combined = functools.reduce(Polynom.pipe, polynoms)
 
@@ -67,5 +90,37 @@ def part_one():
     print(answer)
 
 
+def inverse_test_1():
+    # inverting the combined polynom
+
+    DECK_SIZE = 10007
+
+    polynoms = read_input("./input.txt", DECK_SIZE)
+
+    combined = functools.reduce(Polynom.pipe, polynoms)
+
+    inverse = combined.inverse()
+
+    answer = inverse.evaluate(4284)
+
+    print(answer)
+
+
+def inverse_test_2():
+    # inverting each polynom individually and combining them in reverse order
+
+    DECK_SIZE = 10007
+
+    polynoms = read_input("./input.txt", DECK_SIZE)
+
+    inverse = functools.reduce(Polynom.pipe, reversed(list(map(Polynom.inverse, polynoms))))
+
+    answer = inverse.evaluate(4284)
+
+    print(answer)
+
+
 if __name__ == "__main__":
     part_one()
+    inverse_test_1()
+    inverse_test_2()

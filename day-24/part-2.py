@@ -99,6 +99,8 @@ def bug_count(grids_by_level):
 
 
 def part_two():
+    SIMULATION_STEP_COUNT = 200
+
     grids_by_level = defaultdict(empty_matrix)
 
     level_zero = grids_by_level[0]
@@ -111,7 +113,7 @@ def part_two():
             if x != CENTER_X or y != CENTER_Y:
                 level_zero[(x, y)] = lines[y][x]
 
-    for _ in range(0, 200):
+    for _ in range(0, SIMULATION_STEP_COUNT):
         marked_cells = set()
 
         for level, matrix in grids_by_level.items():

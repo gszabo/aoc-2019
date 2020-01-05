@@ -86,6 +86,7 @@ def report(grids_by_level):
             print()
         print()
 
+
 def bug_count(grids_by_level):
     count = 0
 
@@ -123,8 +124,12 @@ def part_two():
 
         for level, x, y in marked_cells:
             current_value = grids_by_level[level][(x, y)]
-            neighbour_values = [grids_by_level[ll][(xx, yy)] for (ll, xx, yy) in neighbours(level, x, y)]
-            bug_neighbour_count = len(list(filter(lambda v: v == BUG, neighbour_values)))
+            neighbour_values = [
+                grids_by_level[ll][(xx, yy)] for (ll, xx, yy) in neighbours(level, x, y)
+            ]
+            bug_neighbour_count = len(
+                list(filter(lambda v: v == BUG, neighbour_values))
+            )
 
             if current_value == BUG:
                 next_value = BUG if bug_neighbour_count == 1 else EMPTY_SPACE

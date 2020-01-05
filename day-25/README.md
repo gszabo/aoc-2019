@@ -9,5 +9,4 @@ make the droid weigh the desired amount:
 - space heater
 - antenna
 - spool of cat6
-- bowl of rice
 - klein bottle

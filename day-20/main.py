@@ -1,5 +1,15 @@
 from pprint import pprint
 from collections import defaultdict, deque
+from enum import Enum
+
+WALL = "#"
+PASSAGE = "."
+OPEN_SPACE = " "
+
+
+class EdgeTypes(Enum):
+    OUTER = "outer"
+    INNER = "inner"
 
 
 def read_input(path):
@@ -22,9 +32,45 @@ def add_padding(lines):
     return result
 
 
+def vertical_cross_section(lines, x):
+    return [line[x] for line in lines]
+
+
+def horizontal_cross_section(lines, y):
+    return lines[y]
+
+
+def find_donut_edges_in_cross_section(line, x=None, y=None):
+    edges = []
+
+    donut = {WALL, PASSAGE}
+
+    for i in range(0, len(line) - 1):
+        edge_index = None
+        if (line[i] == " " or line[i].isupper()) and line[i + 1] in donut:
+            edge_index = i + 1
+        elif (line[i + 1] == " " or line[i + 1].isupper()) and line[i] in donut:
+            edge_index = i
+
+        if edge_index is not None:
+            if x is not None:
+                edges.append((x, edge_index))
+            elif y is not None:
+                edges.append((edge_index, y))
+
+    assert len(edges) == 4
+
+    return {
+        edges[0]: EdgeTypes.OUTER,
+        edges[1]: EdgeTypes.INNER,
+        edges[2]: EdgeTypes.INNER,
+        edges[3]: EdgeTypes.OUTER,
+    }
+
+
 def parse_input(lines):
     passages = set()
-    portals = defaultdict(list)
+    portals = defaultdict(dict)
 
     for y, line in enumerate(lines):
         for x, char in enumerate(line):
@@ -35,6 +81,7 @@ def parse_input(lines):
             elif char.isupper():
                 other_char = None
                 portal_cell = None
+                edges = None
 
                 # look down or right for pair
                 # portal labels are read left-right or top-down
@@ -48,6 +95,9 @@ def parse_input(lines):
                         portal_cell = (x, y - 1)
                     else:
                         raise Exception("did not find portal")
+                    edges = find_donut_edges_in_cross_section(
+                        vertical_cross_section(lines, x), x=x
+                    )
                 elif lines[y][x + 1].isupper():
                     # horizontal
                     other_char = lines[y][x + 1]
@@ -57,12 +107,18 @@ def parse_input(lines):
                         portal_cell = (x - 1, y)
                     else:
                         raise Exception("did not find portal")
+                    edges = find_donut_edges_in_cross_section(
+                        horizontal_cross_section(lines, y), y=y
+                    )
 
                 # other_char can stay None if we stand on the
                 # second character of the portal label
                 if other_char is not None:
                     portal = char + other_char
-                    portals[portal].append(portal_cell)
+                    if portal_cell not in edges:
+                        raise Exception("portal cell is not edge")
+                    portal_type = edges[portal_cell]
+                    portals[portal][portal_type] = portal_cell
 
     # sanity check portal parsing
     for portal, tiles in portals.items():
@@ -77,7 +133,7 @@ def parse_input(lines):
 def create_portal_tile_mapping(portals):
     """
     Returns a mapping for every portal's tile pair
-    Eg. if portals is {"AB": [(x1, y1), (x2, y2)]}
+    Eg. if portals is {"AB": {"outer": (x1, y1), "inner": (x2, y2)}}
     this function returns {(x1, y1): (x2, y2), (x2, y2): (x1, y1)}
 
     Ignores "AA" and "ZZ" portals
@@ -88,9 +144,9 @@ def create_portal_tile_mapping(portals):
     for portal, tiles in portals.items():
         if portal in {"AA", "ZZ"}:
             continue
-        tile_1, tile_2 = tiles
-        result[tile_1] = tile_2
-        result[tile_2] = tile_1
+        outer_tile, inner_tile = tiles[EdgeTypes.OUTER], tiles[EdgeTypes.INNER]
+        result[outer_tile] = inner_tile
+        result[inner_tile] = outer_tile
 
     return result
 
@@ -168,8 +224,8 @@ def part_one():
 
     portal_tile_map = create_portal_tile_mapping(portals)
 
-    start = portals["AA"][0]
-    target = portals["ZZ"][0]
+    start = portals["AA"][EdgeTypes.OUTER]
+    target = portals["ZZ"][EdgeTypes.OUTER]
 
     # BFS can be used because every "edge" (step) in the graph
     # has weight 1
@@ -179,4 +235,3 @@ def part_one():
 
 if __name__ == "__main__":
     part_one()
-

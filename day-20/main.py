@@ -14,7 +14,6 @@ class EdgeTypes(Enum):
 
 def read_input(path):
     with open(path) as f:
-        # provide padding to avoid index out of range
         # only strip \n from right, leave other space chars
         lines = [line.rstrip("\n") for line in f.readlines()]
     return lines
@@ -58,14 +57,20 @@ def find_donut_edges_in_cross_section(line, x=None, y=None):
             elif y is not None:
                 edges.append((edge_index, y))
 
-    assert len(edges) == 4
+    assert len(edges) in {2, 4}, edges
 
-    return {
-        edges[0]: EdgeTypes.OUTER,
-        edges[1]: EdgeTypes.INNER,
-        edges[2]: EdgeTypes.INNER,
-        edges[3]: EdgeTypes.OUTER,
-    }
+    if len(edges) == 4:
+        return {
+            edges[0]: EdgeTypes.OUTER,
+            edges[1]: EdgeTypes.INNER,
+            edges[2]: EdgeTypes.INNER,
+            edges[3]: EdgeTypes.OUTER,
+        }
+    else:
+        return {
+            edges[0]: EdgeTypes.OUTER,
+            edges[1]: EdgeTypes.OUTER,
+        }
 
 
 def parse_input(lines):
@@ -166,6 +171,34 @@ def neighbours(pos, passages, portal_tile_map):
         yield portal_tile_map[pos]
 
 
+def neighbours_folded(pos, passages, portal_tile_map, portal_type_by_pos):
+    """
+    folded: taking recursion into account
+    """
+
+    (x, y), level = pos
+    candidates = [
+        (x - 1, y),
+        (x + 1, y),
+        (x, y - 1),
+        (x, y + 1),
+    ]
+    for c in candidates:
+        if c in passages:
+            # neighbour in the same level
+            yield c, level
+
+    if (x, y) in portal_tile_map:
+        # neighbour through a portal, on a different level
+        other_side = portal_tile_map[(x, y)]
+        portal_type = portal_type_by_pos[(x, y)]
+        if portal_type == EdgeTypes.INNER:
+            yield other_side, level + 1
+        elif level > 0:
+            # portal type is outer, it cannot be used in outermost level
+            yield other_side, level - 1
+
+
 def shortest_path_dijkstra(start, target, passages, portal_tile_map):
     discovered = set()
 
@@ -218,6 +251,36 @@ def shortest_path_bfs(start, target, passages, portal_tile_map):
     return distances[target]
 
 
+def shortest_path_bfs_folded(
+    start, target, passages, portal_tile_map, portal_type_by_pos
+):
+    """
+    folded: taking recursion into account
+    """
+
+    discovered = {start}
+    distances = {start: 0}
+    to_visit = deque([start])
+
+    while len(to_visit) > 0:
+        current = to_visit.popleft()
+
+        for n in neighbours_folded(
+            current, passages, portal_tile_map, portal_type_by_pos
+        ):
+            if n in discovered:
+                continue
+
+            distances[n] = distances[current] + 1
+            discovered.add(n)
+            to_visit.append(n)
+
+        if target in discovered:
+            break
+
+    return distances[target]
+
+
 def part_one():
     lines = add_padding(read_input("./input.txt"))
     passages, portals = parse_input(lines)
@@ -233,5 +296,32 @@ def part_one():
     print(shortest_path_dijkstra(start, target, passages, portal_tile_map))
 
 
+def part_two():
+    lines = add_padding(read_input("./input.txt"))
+    passages, portals = parse_input(lines)
+
+    portal_tile_map = create_portal_tile_mapping(portals)
+
+    portal_type_by_pos = {
+        pos: t
+        for name, tiles in portals.items()
+        for t, pos in tiles.items()
+        if name not in {"AA", "ZZ"}
+    }
+
+    start = (portals["AA"][EdgeTypes.OUTER], 0)
+    target = (portals["ZZ"][EdgeTypes.OUTER], 0)
+
+    # BFS can be used because every "edge" (step) in the graph
+    # has weight 1
+    print(
+        shortest_path_bfs_folded(
+            start, target, passages, portal_tile_map, portal_type_by_pos
+        )
+    )
+
+
 if __name__ == "__main__":
     part_one()
+    print()
+    part_two()

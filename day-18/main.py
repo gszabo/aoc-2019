@@ -130,6 +130,10 @@ def memoize(f):
 
 
 def update(_tuple, index, new_value):
+    """
+    Creates a new tuple, same as _tuple but at index position with new_value.
+    """
+    
     result = list(_tuple)
     result[index] = new_value
     return tuple(result)
@@ -187,7 +191,7 @@ def part_two():
         return min(paths, key=lambda pair: pair[0])
 
     # frozenset, so that the memoize decorator can hash it
-    answer = shortest_path_from(tuple(vault.entrances), frozenset())
+    answer = shortest_path_from(vault.entrances, frozenset())
 
     print(answer)
 

@@ -4,15 +4,17 @@ https://adventofcode.com/2019/day/18
 
 This problem eluded me for a while. At first I had a backtrack like recursive algorithm:
 1. make current position the entrance
-2. check what keys are reachable from the current position
+2. check what keys are reachable from the current position 
+(BFS along the corridors, taking into account doors and already obtained keys)
 3. if there is only one key reachable
     1. go there and grab the key
     2. go to step 2
 4. if there are multiple keys reachable
     1. for each key
         1. go there and grab the key
-        2. go to step to and calculate the steps taken to pick up all keys
-    2. choose the best (minimum steps) option and go to step 2
+        2. go to step 2 and calculate the steps taken to pick up all keys
+    2. choose the best (minimum steps) option 
+    3. go to step 2
 
 For the small examples this worked fine, but it did not finish
 even for the example with 136 steps. It has 16 keys, and according to
@@ -24,12 +26,14 @@ somehow I stumbled upon the [dynamic programming](https://en.wikipedia.org/wiki/
 I sensed it would fit because it seemed to me that my algorithm was calculating the same sub problem
 over and over again. To be more precise, this problem has
 - optimal substructure: 
+    
     The optimal solution to the problem can be calculated by the optimal solutions of the sub-problems.
     Here the sub-problems are the shortest key pickup order from each reachable key.
     One optimal key pickup order is also optimal if we only consider the last *n* keys. So the solution
     to the original problem is the one from the sub-problems whose path length and the distance from the
     current position to it's starting key added together is minimal.
 - overlapping sub-problems:
+    
     This means that the number of different sub-problems are not very large, so the recursive algorithm
     solves the same sub-problems over and over. This is true for this algorithm. 
 

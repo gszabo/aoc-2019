@@ -303,9 +303,9 @@ def part_two():
     portal_tile_map = create_portal_tile_mapping(portals)
 
     portal_type_by_pos = {
-        pos: t
+        pos: portal_type
         for name, tiles in portals.items()
-        for t, pos in tiles.items()
+        for portal_type, pos in tiles.items()
         if name not in {"AA", "ZZ"}
     }
 

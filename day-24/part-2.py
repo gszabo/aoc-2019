@@ -9,12 +9,6 @@ CENTER_Y = HEIGHT // 2
 EMPTY_SPACE = "."
 BUG = "#"
 
-# egy szimulacios lepes:
-# megkeresni a bugokat es megjelolni a szomszedaikat, illetve a bug cellajat is
-# a megjelolt cellakon vegigmenni es kiertekelni a szabalyokat
-
-# cella azonositas: (level, x, y)
-
 
 def neighbours(level, x, y):
     if x == CENTER_X and y == CENTER_Y:
@@ -88,14 +82,55 @@ def report(grids_by_level):
 
 
 def bug_count(grids_by_level):
-    count = 0
+    return sum(
+        1
+        for matrix in grids_by_level.values()
+        for value in matrix.values()
+        if value == BUG
+    )
 
-    for matrix in grids_by_level.values():
-        for value in matrix.values():
+
+def find_possible_affected_cells(grids_by_level):
+    marked_cells = set()
+
+    for level, matrix in grids_by_level.items():
+        for (x, y), value in matrix.items():
             if value == BUG:
-                count += 1
+                marked_cells.add((level, x, y))
+                marked_cells.update(neighbours(level, x, y))
 
-    return count
+    return marked_cells
+
+
+def next_value(current_value, bug_neighbour_count):
+    if current_value == BUG:
+        return BUG if bug_neighbour_count == 1 else EMPTY_SPACE
+    else:
+        return BUG if bug_neighbour_count in {1, 2} else EMPTY_SPACE
+
+
+def fertility_factor(grids_by_level, level, x, y):
+    neighbour_values = (
+        grids_by_level[ll][(xx, yy)] for (ll, xx, yy) in neighbours(level, x, y)
+    )
+    return sum(1 for v in neighbour_values if v == BUG)
+
+
+def simulation_step(grids_by_level):
+    marked_cells = find_possible_affected_cells(grids_by_level)
+
+    updates = {}
+
+    for level, x, y in marked_cells:
+        current_value = grids_by_level[level][(x, y)]
+        bug_neighbour_count = fertility_factor(grids_by_level, level, x, y)
+
+        updates[(level, x, y)] = next_value(current_value, bug_neighbour_count)
+
+    for (level, x, y), update_value in updates.items():
+        grids_by_level[level][(x, y)] = update_value
+
+    return grids_by_level
 
 
 def part_two():
@@ -114,34 +149,7 @@ def part_two():
                 level_zero[(x, y)] = lines[y][x]
 
     for _ in range(0, SIMULATION_STEP_COUNT):
-        marked_cells = set()
-
-        for level, matrix in grids_by_level.items():
-            for (x, y), value in matrix.items():
-                if value == BUG:
-                    marked_cells.add((level, x, y))
-                    marked_cells.update(neighbours(level, x, y))
-
-        updates = {}
-
-        for level, x, y in marked_cells:
-            current_value = grids_by_level[level][(x, y)]
-            neighbour_values = [
-                grids_by_level[ll][(xx, yy)] for (ll, xx, yy) in neighbours(level, x, y)
-            ]
-            bug_neighbour_count = len(
-                list(filter(lambda v: v == BUG, neighbour_values))
-            )
-
-            if current_value == BUG:
-                next_value = BUG if bug_neighbour_count == 1 else EMPTY_SPACE
-            else:
-                next_value = BUG if bug_neighbour_count in {1, 2} else EMPTY_SPACE
-
-            updates[(level, x, y)] = next_value
-
-        for (level, x, y), next_value in updates.items():
-            grids_by_level[level][(x, y)] = next_value
+        grids_by_level = simulation_step(grids_by_level)
 
     # report(grids_by_level)
 

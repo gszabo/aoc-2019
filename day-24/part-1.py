@@ -40,12 +40,12 @@ def simulation_step(matrix):
     for x in range(0, WIDTH):
         for y in range(0, HEIGHT):
             cell = matrix[(x, y)]
-            bugs = adjacent_bugs(x, y, matrix)
+            bug_count = adjacent_bugs(x, y, matrix)
 
             if cell == BUG:
-                new_cell = BUG if bugs == 1 else EMPTY_SPACE
+                new_cell = BUG if bug_count == 1 else EMPTY_SPACE
             else:
-                new_cell = BUG if bugs in {1, 2} else EMPTY_SPACE
+                new_cell = BUG if bug_count in {1, 2} else EMPTY_SPACE
 
             result[(x, y)] = new_cell
 
@@ -74,31 +74,38 @@ def biodiversity_rating(matrix):
     return result
 
 
+def find_first_recurring(initial, step_fn, hash_fn):
+    collector = set()
+    collector.add(hash_fn(initial))
+
+    step_count = 0
+    current = initial
+
+    while True:
+        current = step_fn(current)
+        step_count += 1
+
+        h = hash_fn(current)
+        if h in collector:
+            return current, step_count
+        else:
+            collector.add(h)
+
+
 def part_one():
-    m = create_empty_matrix()
+    input_matrix = create_empty_matrix()
 
     with open("./input.txt") as f:
         lines = list(map(str.strip, f.readlines()))
     for x in range(0, WIDTH):
         for y in range(0, HEIGHT):
-            m[(x, y)] = lines[y][x]
+            input_matrix[(x, y)] = lines[y][x]
 
-    collector = set()
-    collector.add(stringify(m))
+    first_match, steps = find_first_recurring(input_matrix, simulation_step, stringify)
+    print(f"Found first match after {steps} steps")
+    print(stringify(first_match))
 
-    i = 0
-    while True:
-        m = simulation_step(m)
-        i += 1
-
-        s = stringify(m)
-        if s in collector:
-            print(f"Found first match after {i} steps")
-            print(s)
-            answer = biodiversity_rating(m)
-            break
-        else:
-            collector.add(s)
+    answer = biodiversity_rating(first_match)
 
     print(answer)
 

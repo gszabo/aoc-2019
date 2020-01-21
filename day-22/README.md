@@ -28,12 +28,12 @@ Doing multiple shuffling steps (eg. dealing into new stack, then cutting 3, etc)
 represented as a function. That function is the _composition_ of the functions of the
 individual steps. The input is a list of shuffling steps, so the whole input can be
 substituted with only one function: the composition of its steps. That one function
-places every card just like bunch of steps in the input would.
+places every card just like the bunch of steps in the input would.
 
 Each type of function is linear (adding a modulo N to end does not affect linearity). 
 Each one of them can be written as
 ```
-f(n) = a1 * n + a0 (mod N)
+f(n) = a1 * n + a0 (mod N) ; a0 and a1 are integers
 ```
 The compositions of linear functions are also linear functions. For example if we have two linear
 functions `f` and `g`:

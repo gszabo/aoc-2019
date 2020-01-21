@@ -45,17 +45,15 @@ class Polynom:
         if self._a1 == (self._modulo - 1) or self._a1 == 1:
             # we need this shortcut to be able to quickly invert
             # deal_into_new_stack
-            inverter = self._a1
+            q = self._a1
         else:
-            q = None
             for i in range(1, self._a1 + 1):
-                if ((i * self._modulo) % self._a1) == (self._a1 - 1):
-                    q = i
+                if ((i * self._modulo + 1) % self._a1) == 0:
                     break
 
-            inverter = (q * self._modulo + 1) // self._a1
+            q = (i * self._modulo + 1) // self._a1
 
-        return Polynom(-inverter * self._a0, inverter, self._modulo)
+        return Polynom(a0=-q * self._a0, a1=q, modulo=self._modulo)
 
     def times(self, n: int):
         if n == 0:
@@ -179,7 +177,7 @@ def inverse_test_1():
 
 def inverse_test_2():
     # Check to see that the inverse gives back 2019 to the solution of part 1
-    
+
     DECK_SIZE = 10007
 
     polynoms = read_input("./input.txt", DECK_SIZE)

@@ -187,9 +187,9 @@ I_million = (I_thousand | I_thousand | ... | I_thousand)
              ------------------------------------------
                             1000 times
 
-I_billion = 1000 times I_million // a billion
+I_billion = 1000 times I_million
 
-I_trillion = 1000 times I_billion // a trillion
+I_trillion = 1000 times I_billion
 ```
 
 Remember, each `I_...` up there is just a function with `a1` and `a0`
